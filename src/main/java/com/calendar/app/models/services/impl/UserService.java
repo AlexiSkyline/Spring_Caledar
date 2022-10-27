@@ -11,9 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.calendar.app.models.entity.TypeRole.*;
 
@@ -27,7 +25,7 @@ public class UserService implements IUserService {
     @Transactional
     public User save( SignupRequest signupRequest ) {
         String password = this.passwordEncoder.encode( signupRequest.getPassword() );
-        User user = new User( signupRequest.getUsername(), signupRequest.getEmail(), password, this.addRoleUser( signupRequest.getRoles() ));
+        User user = new User( signupRequest.getUsername(), signupRequest.getEmail(), password, this.addRoleUser());
 
         return this.userRepository.save( user );
     }
@@ -50,35 +48,8 @@ public class UserService implements IUserService {
         return this.userRepository.existsByEmail( email );
     }
 
-    private Set<Role> addRoleUser( Set<String> shortNameRoles ) {
-        Set<Role> roles = new HashSet<>();
-
-        if ( shortNameRoles == null ) {
-            Role userRole = this.roleRepository.findByName( ROLE_USER )
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            shortNameRoles.forEach( role -> {
-                switch( role ) {
-                    case "admin" -> {
-                        Role adminRole = this.roleRepository.findByName( ROLE_ADMIN )
-                                .orElseThrow(() -> new RuntimeException( "Error: Role is not found." ));
-                        roles.add(adminRole);
-                    }
-                    case "mod" -> {
-                        Role modRole = this.roleRepository.findByName( ROLE_MODERATOR )
-                                .orElseThrow(() -> new RuntimeException( "Error: Role is not found." ));
-                        roles.add(modRole);
-                    }
-                    default -> {
-                        Role userRole = this.roleRepository.findByName( ROLE_USER )
-                                .orElseThrow(() -> new RuntimeException( "Error: Role is not found." ));
-                        roles.add(userRole);
-                    }
-                }
-            });
-        }
-
-        return roles;
+    private Role addRoleUser() {
+        return this.roleRepository.findByName( ROLE_USER )
+                .orElseThrow(() -> new RuntimeException( "Error: Role is not found." ));
     }
 }

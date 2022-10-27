@@ -1,5 +1,6 @@
 package com.calendar.app.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,17 +14,8 @@ public class TestController {
     }
 
     @GetMapping( "/user" )
+    @PreAuthorize( "hasRole('USER')" )
     public String userAccess() {
         return "User Content.";
-    }
-
-    @GetMapping( "/mod" )
-    public String moderatorAccess() {
-        return "Moderator Content.";
-    }
-
-    @GetMapping( "/admin" )
-    public String adminAccess() {
-        return "Admin Content.";
     }
 }
