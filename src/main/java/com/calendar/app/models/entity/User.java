@@ -1,7 +1,6 @@
 package com.calendar.app.models.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -16,14 +15,14 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table( name = "users" )
-@Data
-@NoArgsConstructor
+@NoArgsConstructor @AllArgsConstructor
+@Getter @Setter
 public class User {
     @Id
     @GeneratedValue( strategy = IDENTITY )
     private Long id;
     @NotBlank
-    @Size( max = 50 )
+    @Size( min = 5, max = 25 )
     @Column( unique = true )
     private String username;
     @NotBlank
@@ -32,7 +31,7 @@ public class User {
     @Column( unique = true )
     private String email;
     @NotBlank
-    @Size(  min = 6, max = 120 )
+    @Size(  min = 6, max = 16 )
     public String password;
     @ManyToMany( fetch = LAZY )
     @JoinTable( name = "user_roles", joinColumns = @JoinColumn( name = "user_id" ),

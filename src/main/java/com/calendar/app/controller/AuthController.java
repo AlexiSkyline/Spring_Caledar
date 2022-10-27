@@ -4,9 +4,11 @@ import com.calendar.app.models.services.IUserService;
 import com.calendar.app.payload.request.LoginRequest;
 import com.calendar.app.payload.request.SignupRequest;
 import com.calendar.app.payload.response.JwtResponse;
+import com.calendar.app.payload.response.ResponseHandler;
 import com.calendar.app.security.UserDetailsImpl;
 import com.calendar.app.security.jwt.JwtUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,23 +23,23 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.OK;
+
 @RestController
 @RequestMapping( "/api/auth" )
 @AllArgsConstructor
-public class AuthController
-{
+public class AuthController {
     private final IUserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
 
     @PostMapping( "/login" )
     public ResponseEntity<?> authenticateUser( @Valid @RequestBody LoginRequest loginRequest ) {
-        return ResponseEntity.ok( this.loginMessage( loginRequest.getUsername(), loginRequest.getPassword() ) );
+        return ResponseHandler.responseBuild( OK, "Welcome", this.authenticate( loginRequest.getUsername(), loginRequest.getPassword() ) );
     }
 
     @PostMapping( "/register" )
-    public ResponseEntity<?> registerUser( @Valid @RequestBody SignupRequest signUpRequest )
-    {
+    public ResponseEntity<?> registerUser( @Valid @RequestBody SignupRequest signUpRequest ) {
         if ( this.userService.existsByUsername( signUpRequest.getUsername() ) ) {
             return ResponseEntity
                     .badRequest()
@@ -51,11 +53,10 @@ public class AuthController
         }
         this.userService.save( signUpRequest );
 
-        return ResponseEntity.ok( this.loginMessage( signUpRequest.getUsername(), signUpRequest.getPassword() ) );
+        return ResponseHandler.responseBuild( OK, "Account successfully created", this.authenticate( signUpRequest.getUsername(), signUpRequest.getPassword() ) );
     }
 
-    private JwtResponse loginMessage( String username, String password )
-    {
+    private JwtResponse authenticate( String username, String password ) {
         Authentication authentication = authenticationManager
                 .authenticate( new UsernamePasswordAuthenticationToken( username, password ) );
 
@@ -66,6 +67,6 @@ public class AuthController
         List<String> roles = userDetails.getAuthorities().stream()
                 .map( GrantedAuthority::getAuthority ).toList();
 
-        return new JwtResponse( jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles );
+        return new JwtResponse( userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles, jwt );
     }
 }
