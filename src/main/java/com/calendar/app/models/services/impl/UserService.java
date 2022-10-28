@@ -25,7 +25,7 @@ public class UserService implements IUserService {
     @Transactional
     public User save( SignupRequest signupRequest ) {
         String password = this.passwordEncoder.encode( signupRequest.getPassword() );
-        User user = new User( signupRequest.getUsername(), signupRequest.getEmail(), password, this.addRoleUser());
+        User user = new User( signupRequest.getUsername(), signupRequest.getEmail(), password, this.addRoleUser() );
 
         return this.userRepository.save( user );
     }
@@ -38,7 +38,7 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public Boolean existsByUsername(String username) {
+    public Boolean existsByUsername( String username ) {
         return this.userRepository.existsByUsername( username );
     }
 
@@ -50,6 +50,7 @@ public class UserService implements IUserService {
 
     private Role addRoleUser() {
         return this.roleRepository.findByName( ROLE_USER )
-                .orElseThrow(() -> new RuntimeException( "Error: Role is not found." ));
+                .orElseGet(() -> this.roleRepository.save( new Role( ROLE_USER ) ));
+
     }
 }

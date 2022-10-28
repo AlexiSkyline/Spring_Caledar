@@ -1,5 +1,6 @@
 package com.calendar.app.controller;
 
+import com.calendar.app.exception.FieldAlreadyUsedException;
 import com.calendar.app.payload.response.ExceptionResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -8,16 +9,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.calendar.app.exception.Error;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestControllerAdvice @AllArgsConstructor
 public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
@@ -34,5 +35,13 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), status.value(), status, errors );
 
         return new ResponseEntity<>( responseBody, status );
+    }
+
+    @ExceptionHandler( value = { FieldAlreadyUsedException.class } )
+    public ResponseEntity<?> fieldAlreadyUsedException( FieldAlreadyUsedException exception ) {
+        Error error = new Error( exception.getMessage(), exception.getFieldName(), "JSON-Body" );
+        ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), CONFLICT.value(), CONFLICT, List.of( error ) );
+
+        return new ResponseEntity<>( responseBody, CONFLICT );
     }
 }

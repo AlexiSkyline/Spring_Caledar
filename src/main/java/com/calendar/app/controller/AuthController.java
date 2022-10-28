@@ -1,5 +1,6 @@
 package com.calendar.app.controller;
 
+import com.calendar.app.exception.FieldAlreadyUsedException;
 import com.calendar.app.models.services.IUserService;
 import com.calendar.app.payload.request.LoginRequest;
 import com.calendar.app.payload.request.SignupRequest;
@@ -38,15 +39,10 @@ public class AuthController {
     @PostMapping( "/register" )
     public ResponseEntity<?> registerUser( @Valid @RequestBody SignupRequest signUpRequest ) {
         if ( this.userService.existsByUsername( signUpRequest.getUsername() ) ) {
-            return ResponseEntity
-                    .badRequest()
-                    .body( "Error: Username is already taken!" );
+            throw new FieldAlreadyUsedException( "Username", signUpRequest.getUsername(), "User" );
         }
-
         if ( this.userService.existsByEmail( signUpRequest.getEmail() ) ) {
-            return ResponseEntity
-                    .badRequest()
-                    .body( "Error: Email is already in use!" );
+            throw new FieldAlreadyUsedException( "Email", signUpRequest.getEmail(), "User" );
         }
         this.userService.save( signUpRequest );
 
