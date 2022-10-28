@@ -4,8 +4,10 @@ import com.calendar.app.security.UserDetailsServiceImpl;
 import com.calendar.app.security.jwt.AuthEntryPointJwt;
 import com.calendar.app.security.jwt.AuthTokenFilter;
 import lombok.AllArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -62,5 +64,14 @@ public class WebSecurityConfig {
         httpSecurity.addFilterBefore( this.authTokenFilter(), UsernamePasswordAuthenticationFilter.class );
 
         return httpSecurity.build();
+    }
+
+    @Bean
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename( "classpath:messages" );
+        messageSource.setDefaultEncoding( "UTF-8" );
+
+        return messageSource;
     }
 }
