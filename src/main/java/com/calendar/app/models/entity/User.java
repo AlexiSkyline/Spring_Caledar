@@ -1,5 +1,7 @@
 package com.calendar.app.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import javax.persistence.*;
@@ -29,8 +31,11 @@ public class User {
     private String email;
     @NotBlank
     @Size( max = 120 )
+    @JsonIgnore
     public String password;
     @OneToOne( fetch = LAZY )
+    @JoinColumn( name = "id_role" )
+    @JsonIgnore
     public Role role;
 
     public User( String username, String email, String password ) {

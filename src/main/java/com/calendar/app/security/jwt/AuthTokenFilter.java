@@ -20,6 +20,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private JwtUtils jwtUtils;
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+    private static UserDetails UserLoggedIn;
 
     @Override
     protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain ) throws ServletException, IOException {
@@ -33,12 +34,17 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 authenticationToken.setDetails( new WebAuthenticationDetailsSource().buildDetails( request ) );
 
                 SecurityContextHolder.getContext().setAuthentication( authenticationToken );
+                UserLoggedIn = userDetails;
             }
         } catch ( Exception e ) {
             logger.error( "Cannot set user authentication: {}", e );
         }
 
         filterChain.doFilter( request, response );
+    }
+
+     public static UserDetails getUserLoggedIn() {
+        return UserLoggedIn;
     }
 
     public String parserJwt( HttpServletRequest request ) {
