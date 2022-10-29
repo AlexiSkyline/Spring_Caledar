@@ -13,7 +13,7 @@ import static io.jsonwebtoken.SignatureAlgorithm.HS512;
 @Component @Slf4j
 public class JwtUtils {
     private final String SECRET_WORD = "anySecretWord";
-    private final int EXPIRATION_JWT_MINUTES = 60000;
+    private final int EXPIRATION_JWT_MINUTES = 3;
 
     public String generateJwtToken( Authentication authentication ) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -21,7 +21,7 @@ public class JwtUtils {
         return Jwts.builder()
                 .setSubject( userDetails.getUsername() )
                 .setIssuedAt( new Date() )
-                .setExpiration( new Date(( new Date() ).getTime() + EXPIRATION_JWT_MINUTES ))
+                .setExpiration( new Date(( new Date() ).getTime() + ( EXPIRATION_JWT_MINUTES * 60000 ) ))
                 .signWith( HS512, SECRET_WORD )
                 .compact();
     }

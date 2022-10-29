@@ -1,6 +1,7 @@
 package com.calendar.app.controller;
 
 import com.calendar.app.exception.FieldAlreadyUsedException;
+import com.calendar.app.exception.RecordNotFountException;
 import com.calendar.app.payload.response.ExceptionResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -19,6 +20,7 @@ import com.calendar.app.exception.Error;
 import java.util.*;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice @AllArgsConstructor
 public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
@@ -43,5 +45,13 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), CONFLICT.value(), CONFLICT, List.of( error ) );
 
         return new ResponseEntity<>( responseBody, CONFLICT );
+    }
+
+    @ExceptionHandler( value = { RecordNotFountException.class } )
+    public ResponseEntity<?> recordNotFountException( RecordNotFountException exception ) {
+        Error error = new Error( exception.getMessage(), exception.getFieldName(), "PathVariable" );
+        ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), NOT_FOUND.value(), NOT_FOUND, List.of( error ) );
+
+        return new ResponseEntity<>( responseBody, NOT_FOUND );
     }
 }

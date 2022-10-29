@@ -1,5 +1,6 @@
 package com.calendar.app.models.services.impl;
 
+import com.calendar.app.exception.RecordNotFountException;
 import com.calendar.app.models.entity.Role;
 import com.calendar.app.models.entity.User;
 import com.calendar.app.models.repository.IRoleRepository;
@@ -32,25 +33,39 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional( readOnly = true )
-    public Optional<User> findByUsername( String username ) {
-        return this.userRepository.findByUsername( username );
+    public User findByUsername( String username ) {
+        Optional<User> foundUser = this.userRepository.findByUsername( username );
+        if( foundUser.isEmpty() ) {
+            throw new RecordNotFountException( "User", "UserName", username );
+        }
+
+        return foundUser.get();
     }
 
     @Override
     @Transactional
     public Boolean existsByUsername( String username ) {
-        return this.userRepository.existsByUsername( username );
+        boolean foundUser = this.userRepository.existsByUsername( username );
+        if( !foundUser ) {
+            throw new RecordNotFountException( "User", "UserName", username );
+        }
+
+        return true;
     }
 
     @Override
     @Transactional
     public Boolean existsByEmail( String email ) {
-        return this.userRepository.existsByEmail( email );
+        boolean foundUser = this.userRepository.existsByEmail( email );
+        if( !foundUser ) {
+            throw new RecordNotFountException( "User", "Email", email );
+        }
+
+        return true;
     }
 
     private Role addRoleUser() {
         return this.roleRepository.findByName( ROLE_USER )
                 .orElseGet(() -> this.roleRepository.save( new Role( ROLE_USER ) ));
-
     }
 }

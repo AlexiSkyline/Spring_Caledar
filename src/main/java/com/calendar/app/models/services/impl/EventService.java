@@ -1,12 +1,16 @@
 package com.calendar.app.models.services.impl;
 
+import com.calendar.app.exception.RecordNotFountException;
 import com.calendar.app.models.entity.Event;
 import com.calendar.app.models.entity.User;
 import com.calendar.app.models.repository.IEventRepository;
-import com.calendar.app.models.repository.IUserRepository;
 import com.calendar.app.models.services.IEventService;
+import com.calendar.app.models.services.IUserService;
+import com.calendar.app.security.jwt.AuthTokenFilter;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,35 +18,52 @@ import java.util.Optional;
 @Service @AllArgsConstructor
 public class EventService implements IEventService {
     private final IEventRepository eventRepository;
-    private final IUserRepository userRepository;
+    private final IUserService userService;
 
     @Override
-    public Event save( Event event, String userName ) {
-        Optional<User> foundUser = this.userRepository.findByUsername( userName );
-        event.setUser( foundUser.get() );
-
+    @Transactional
+    public Event save( Event event ) {
+        User foundUser = this.userService.findByUsername( this.getUserName() );
+        event.setUser( foundUser );
         return this.eventRepository.save( event );
     }
 
     @Override
-    public List<Event> findAll( String userName ) {
-        Optional<User> foundUser = this.userRepository.findByUsername( userName );
-        return this.eventRepository.findAllByUser_Id( foundUser.get().getId() );
+    @Transactional( readOnly = true )
+    public List<Event> findAll() {
+        UserDetails userLogin = AuthTokenFilter.getUserLoggedIn();
+        User foundUser = this.userService.findByUsername( userLogin.getUsername() );
+        return this.eventRepository.findAllByUser_Id( foundUser.getId() );
     }
 
     @Override
+    @Transactional
     public Event update( Long id, Event event ) {
-        Optional<Event> foundEvent = this.eventRepository.findById( id );
-
-        Event updateEvent = this.buildEvent( foundEvent.get(), event );
+        Event foundEvent = this.getEvent( id );
+        Event updateEvent = this.buildEvent( foundEvent, event );
         return this.eventRepository.save( updateEvent );
     }
 
     @Override
+    @Transactional
     public Event delete( Long id ) {
-        Optional<Event> foundEvent = this.eventRepository.findById( id );
-
+        Event foundEvent = this.getEvent( id );
         this.eventRepository.deleteById( id );
+        return foundEvent;
+    }
+
+    public String getUserName() {
+        UserDetails userLogin = AuthTokenFilter.getUserLoggedIn();
+        return userLogin.getUsername();
+    }
+
+    private Event getEvent( Long id ) {
+        Optional<Event> foundEvent = this.eventRepository.findById(id);
+        User foundUser = this.userService.findByUsername( this.getUserName() );
+        if( foundEvent.isEmpty() || !foundEvent.get().getUser().getUsername().equals( foundUser.getUsername() ) ) {
+            throw new RecordNotFountException( "Event", "ID", id.toString() );
+        }
+
         return foundEvent.get();
     }
 
