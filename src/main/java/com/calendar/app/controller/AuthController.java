@@ -38,14 +38,7 @@ public class AuthController {
 
     @PostMapping( "/register" )
     public ResponseEntity<?> registerUser( @Valid @RequestBody SignupRequest signUpRequest ) {
-        if ( this.userService.existsByUsername( signUpRequest.getUsername() ) ) {
-            throw new FieldAlreadyUsedException( "Username", signUpRequest.getUsername(), "User" );
-        }
-        if ( this.userService.existsByEmail( signUpRequest.getEmail() ) ) {
-            throw new FieldAlreadyUsedException( "Email", signUpRequest.getEmail(), "User" );
-        }
         this.userService.save( signUpRequest );
-
         return ResponseHandler.responseBuild( OK, "Account successfully created", this.authenticate( signUpRequest.getUsername(), signUpRequest.getPassword() ) );
     }
 

@@ -1,5 +1,6 @@
 package com.calendar.app.models.services.impl;
 
+import com.calendar.app.exception.FieldAlreadyUsedException;
 import com.calendar.app.exception.RecordNotFountException;
 import com.calendar.app.models.entity.Role;
 import com.calendar.app.models.entity.User;
@@ -25,6 +26,7 @@ public class UserService implements IUserService {
     @Override
     @Transactional
     public User save( SignupRequest signupRequest ) {
+        this.validateDuplicateCredentials( signupRequest );
         String password = this.passwordEncoder.encode( signupRequest.getPassword() );
         User user = new User( signupRequest.getUsername(), signupRequest.getEmail(), password, this.addRoleUser() );
 
@@ -42,26 +44,13 @@ public class UserService implements IUserService {
         return foundUser.get();
     }
 
-    @Override
-    @Transactional
-    public Boolean existsByUsername( String username ) {
-        boolean foundUser = this.userRepository.existsByUsername( username );
-        if( !foundUser ) {
-            throw new RecordNotFountException( "User", "UserName", username );
-        }
-
-        return true;
-    }
-
-    @Override
-    @Transactional
-    public Boolean existsByEmail( String email ) {
-        boolean foundUser = this.userRepository.existsByEmail( email );
-        if( !foundUser ) {
-            throw new RecordNotFountException( "User", "Email", email );
-        }
-
-        return true;
+    private void validateDuplicateCredentials( SignupRequest signupRequest ) {
+        this.userRepository.findByUsername( signupRequest.getUsername() ).ifPresent(( data ) -> {
+            throw new FieldAlreadyUsedException( "Username", data.getUsername(), "User" );
+        });
+        this.userRepository.findAllByEmail( signupRequest.getEmail() ).ifPresent(( data ) -> {
+            throw new FieldAlreadyUsedException( "Email", data.getEmail(), "User" );
+        });
     }
 
     private Role addRoleUser() {
