@@ -1,5 +1,7 @@
 package com.calendar.app.security.jwt;
 
+import com.calendar.app.exception.Error;
+import com.calendar.app.payload.response.ExceptionResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
@@ -10,10 +12,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Date;
 
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @Component @Slf4j
@@ -24,13 +27,11 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
         response.setContentType( APPLICATION_JSON_VALUE );
         response.setStatus( SC_UNAUTHORIZED );
 
-        Map<String, Object> body = new HashMap<>();
-        body.put( "status", SC_UNAUTHORIZED );
-        body.put( "error", "Unauthorized" );
-        body.put( "message", authException.getMessage() );
-        body.put( "path", request.getServletPath() );
+        Error error = new Error( "Credentials", "Authentication", authException.getMessage() );
+        ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), UNAUTHORIZED.value(),
+                UNAUTHORIZED, Collections.singletonList( error ) );
 
         ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue( response.getOutputStream(), body );
+        mapper.writeValue( response.getOutputStream(), responseBody );
     }
 }

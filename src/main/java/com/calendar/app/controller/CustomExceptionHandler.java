@@ -32,26 +32,30 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         List<Error> errors = new ArrayList<>();
         result.getFieldErrors().forEach( error -> {
             String message = this.messageSource.getMessage( error, Locale.forLanguageTag( "US" ) );
-            errors.add( new Error( message, error.getField(), "JSON-Body" ) );
+            errors.add( new Error( error.getField(), "JSON-Body", message ) );
         });
-        ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), status.value(), status, errors );
+        ExceptionResponse responseBody = this.buildResponseBody( status, errors );
 
         return new ResponseEntity<>( responseBody, status );
     }
 
     @ExceptionHandler( value = { FieldAlreadyUsedException.class } )
-    public ResponseEntity<?> fieldAlreadyUsedException( FieldAlreadyUsedException exception ) {
-        Error error = new Error( exception.getMessage(), exception.getFieldName(), "JSON-Body" );
-        ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), CONFLICT.value(), CONFLICT, List.of( error ) );
+    public ResponseEntity<ExceptionResponse> fieldAlreadyUsedException( FieldAlreadyUsedException exception ) {
+        Error error = new Error( exception.getFieldName(), "JSON-Body", exception.getMessage() );
+        ExceptionResponse responseBody = this.buildResponseBody( CONFLICT, Collections.singletonList( error ));
 
         return new ResponseEntity<>( responseBody, CONFLICT );
     }
 
     @ExceptionHandler( value = { RecordNotFountException.class } )
-    public ResponseEntity<?> recordNotFountException( RecordNotFountException exception ) {
-        Error error = new Error( exception.getMessage(), exception.getFieldName(), "PathVariable" );
-        ExceptionResponse responseBody = new ExceptionResponse( new Date().toString(), NOT_FOUND.value(), NOT_FOUND, List.of( error ) );
+    public ResponseEntity<ExceptionResponse> recordNotFountException( RecordNotFountException exception ) {
+        Error error = new Error( exception.getFieldName(), "PathVariable", exception.getMessage() );
+        ExceptionResponse responseBody = this.buildResponseBody( NOT_FOUND, Collections.singletonList( error ));
 
         return new ResponseEntity<>( responseBody, NOT_FOUND );
+    }
+
+    private ExceptionResponse buildResponseBody( HttpStatus status, List<Error> error ) {
+        return new ExceptionResponse( new Date().toString(), status.value(), status, error );
     }
 }

@@ -11,13 +11,13 @@ import javax.validation.constraints.Size;
 @Setter
 public class SignupRequest {
     @NotBlank
-    @Size( min = 3, max = 20 )
+    @Size( min = 5, max = 25 )
     private String username;
     @NotBlank
     @Size( max = 50 )
     @Email
     private String email;
     @NotBlank
-    @Size( min = 6, max = 40 )
+    @Size( min = 6, max = 16 )
     private String password;
 }

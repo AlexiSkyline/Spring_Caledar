@@ -3,6 +3,7 @@ package com.calendar.app.security.jwt;
 import com.calendar.app.security.UserDetailsImpl;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +13,10 @@ import static io.jsonwebtoken.SignatureAlgorithm.HS512;
 
 @Component @Slf4j
 public class JwtUtils {
-    private final String SECRET_WORD = "anySecretWord";
-    private final int EXPIRATION_JWT_MINUTES = 3;
+    @Value( "${jwt.secret.word}" )
+    private String SECRET_WORD;
+    @Value( "${jwt.expiration.minutes}" )
+    private int EXPIRATION_JWT_MINUTES;
 
     public String generateJwtToken( Authentication authentication ) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -21,7 +24,7 @@ public class JwtUtils {
         return Jwts.builder()
                 .setSubject( userDetails.getUsername() )
                 .setIssuedAt( new Date() )
-                .setExpiration( new Date(( new Date() ).getTime() + ( EXPIRATION_JWT_MINUTES * 60000 ) ))
+                .setExpiration( new Date(( new Date() ).getTime() + ( EXPIRATION_JWT_MINUTES * 60000L ) ))
                 .signWith( HS512, SECRET_WORD )
                 .compact();
     }
@@ -30,7 +33,7 @@ public class JwtUtils {
         return Jwts.parser().setSigningKey( SECRET_WORD ).parseClaimsJws( token ).getBody().getSubject();
     }
 
-    public boolean validateJwtToken( String authToken ) {
+    public boolean validateJwt( String authToken ) {
         try {
             Jwts.parser().setSigningKey( SECRET_WORD ).parseClaimsJws( authToken );
             return true;
