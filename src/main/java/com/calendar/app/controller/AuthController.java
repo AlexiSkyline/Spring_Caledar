@@ -1,6 +1,5 @@
 package com.calendar.app.controller;
 
-import com.calendar.app.exception.FieldAlreadyUsedException;
 import com.calendar.app.models.services.IUserService;
 import com.calendar.app.payload.request.LoginRequest;
 import com.calendar.app.payload.request.SignupRequest;
