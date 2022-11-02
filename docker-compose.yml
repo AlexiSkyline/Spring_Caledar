@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  mysql8:
+    container_name: DBMysql8
+    image: mysql:8
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: spring_calendar
+    volumes:
+      - data-mysql:/var/lib/mysql
+    restart: always
+    networks:
+      - spring_calendar
+
+  super_calendar:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: super_calendar
+    hostname: super_calendar
+    image: super-calendar
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql8
+    env_file: ./.env
+    restart: always
+    networks:
+      - spring_calendar
+
+volumes:
+  data-mysql:
+    name: data-mysql
+
+networks:
+  spring_calendar:
+    name: spring_calendar
